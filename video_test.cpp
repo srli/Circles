@@ -34,40 +34,33 @@ int main(int argc,char *argv[])
 {
     int c;
     Mat src, gray, gaussian_result;
+    Mat imgHSV, imgThreshed;
+    
     IplImage* color_img;
-    //Mat imgHSV, imgThreshed;
     CvCapture* cv_cap = cvCaptureFromCAM(0);
     cvNamedWindow("Video",0); // create window
-    //cvNamedWindow("Gaussian Blur",0);
+    cvNamedWindow("Gaussian Blur",0);
     cvNamedWindow("Threshold", 0);
 
     for(;;) {
         color_img = cvQueryFrame(cv_cap); // get frame
         if(color_img != 0){
-          //Mat converted_img(color_img);
-          //cvtColor(converted_img, imgHSV, CV_BGR2HSV);
-          //imgThreshed = cvCreateImage(cvGetSize(color_img), 8, 1);
-          //cvinRange(imgHSV, Scalar(20, 100, 100), Scalar(30, 255, 255), imgThreshed);
-
           src = color_img;
-          //cout << "image loaded" << endl;
-          cvtColor( src, gray, CV_BGR2GRAY );
-          //src_g = gray;
-          // Reduce the noise so we avoid false circle detection
-          GaussianBlur( gray, gaussian_result, Size(9, 9), 2, 2 );
-          //cout << "grayscale acheived" << endl;
-         
-          vector<Vec3f> circles;
 
+          //Changing color image to HSV for color filtering
+          cvtColor(src, imgHSV, CV_BGR2HSV);
+          inRange(imgHSV, Scalar(60, 70, 70), Scalar(120, 255, 255), imgThreshed);
+
+          // Reduce the noise so we avoid false circle detection
+          GaussianBlur( imgThreshed, gaussian_result, Size(9, 9), 2, 2 );
+          vector<Vec3f> circles;
           CvSize dim = cvGetSize(color_img);
-          //cout << "height" << dim.height << "width" << dim.width << endl;
-          //cout << "circles vector" << endl;
           
+          //draws center point of screen
+          circle(src, Point(dim.width/2,dim.height/2), 3, Scalar(255,0,0), -1, 8, 0); 
           // Apply the Hough Transform to find the circles
-          HoughCircles( gray, circles, CV_HOUGH_GRADIENT, 1, 30, 200, 50, 0, 0 );
-         
-          //cout << "transform applied" << endl;
-          circle(src, Point(dim.width/2,dim.height/2), 3, Scalar(255,0,0), -1, 8, 0); //draws center point of screen
+          HoughCircles(gaussian_result, circles, CV_HOUGH_GRADIENT, 1, 30, 250, 25, 5, 0 );
+
           // Draw the circles detected
           for( size_t i = 0; i < circles.size(); i++ )
           {
@@ -84,10 +77,9 @@ int main(int argc,char *argv[])
 
            text_onscreen(src); 
 
-            //cvShowImage("Video", gray); // show frame
           imshow("Video", src);
           imshow("Gaussian Blur", gaussian_result);
-          //imshow("Threshold", imgThreshed);
+          imshow("Threshold", imgHSV);
         c = cvWaitKey(10); // wait 10 ms or for key stroke
         if(c == 27){
             break; // if ESC, break and quit
