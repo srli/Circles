@@ -28,7 +28,7 @@ int main(int argc,char *argv[])
     
     IplImage* color_img;
     CvCapture* cv_cap = cvCaptureFromCAM(0);
-    cvNamedWindow("Video",0); // create window
+    cvNamedWindow("Circle Detection",0); // create window
     cvNamedWindow("Gaussian Blur",0);
     cvNamedWindow("HSV Image", 0);
 
@@ -44,6 +44,7 @@ int main(int argc,char *argv[])
         // Reduce the noise so we avoid false circle detection
         GaussianBlur( imgThreshed, gaussian_result, Size(9, 9), 2, 2 );
         vector<Vec3f> circles;
+        //std::vector<int> circles_radius;
         CvSize dim = cvGetSize(color_img);
         Point center_screen(dim.width/2,dim.height/2);
         
@@ -52,18 +53,16 @@ int main(int argc,char *argv[])
         circle(src, center_screen, 50, Scalar(255,0,0), 1, 8, 0);
 
         // Apply the Hough Transform to find the circles
-        HoughCircles(gaussian_result, circles, CV_HOUGH_GRADIENT, 1, 30, 250, 30, 10, 0 );
-
+        HoughCircles(gaussian_result, circles, CV_HOUGH_GRADIENT, 1, 30, 200, 30, 20, 0 );
         // Draw the circles detected
-        for( size_t i = 0; i < circles.size(); i++ )
-        {
+        //for( size_t i = 0; i < circles.size(); i++ )
+        for( size_t i = 0; i < circles.size(); i++ ){
             Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
             int radius = cvRound(circles[i][2]);
 
             //Drawing each circle
-            circle( src, center, 3, Scalar(0,255,0), -1, 8, 0 );//center     
+            circle( src, center, 3, Scalar(0,255,0), -1, 8, 0 );//center
             circle( src, center, radius, Scalar(0,0,255), 3, 8, 0 );//circumference
-            line(src, center, Point(center.x + radius, center.y), Scalar(0,255,0), 1, 8, 0); //radius
 
             //Drawing lines relative to center
             Point midpoint(center.x, center_screen.y);
@@ -85,18 +84,18 @@ int main(int argc,char *argv[])
             }
 
             double angle = tan(y_distance/x_distance);
-
             double distance = -(radius - 20) + 100;
 
             angle = fmod(angle, pi);
+            cout << "radius:  " << radius << endl;
             cout << "angle:  " << angle << endl;
             cout << "distance:  " << distance << endl;
-
-          }  
+            }
+            
 
         text_onscreen(src); 
 
-        imshow("Video", src);
+        imshow("Circle Detection", src);
         imshow("Gaussian Blur", gaussian_result);
         imshow("HSV Image", imgHSV);
 
