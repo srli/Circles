@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <typeinfo>
+#include <math.h>
 
 using namespace cv;
 using namespace std;
@@ -21,6 +22,7 @@ void text_onscreen(Mat src){
 int main(int argc,char *argv[])
 {
     int c;
+    double pi = 3.1415926535897;
     Mat src, gray, gaussian_result;
     Mat imgHSV, imgThreshed;
     
@@ -28,52 +30,82 @@ int main(int argc,char *argv[])
     CvCapture* cv_cap = cvCaptureFromCAM(0);
     cvNamedWindow("Video",0); // create window
     cvNamedWindow("Gaussian Blur",0);
-    cvNamedWindow("Threshold", 0);
+    cvNamedWindow("HSV Image", 0);
 
     for(;;) {
-        color_img = cvQueryFrame(cv_cap); // get frame
-        if(color_img != 0){
-          src = color_img;
+      color_img = cvQueryFrame(cv_cap); // get frame
+      if(color_img != 0){
+        src = color_img;
 
-          //Changing color image to HSV for color filtering
-          cvtColor(src, imgHSV, CV_BGR2HSV);
-          inRange(imgHSV, Scalar(60, 70, 70), Scalar(120, 255, 255), imgThreshed);
+        //Changing color image to HSV for color filtering
+        cvtColor(src, imgHSV, CV_BGR2HSV);
+        inRange(imgHSV, Scalar(60, 70, 70), Scalar(120, 255, 255), imgThreshed);
 
-          // Reduce the noise so we avoid false circle detection
-          GaussianBlur( imgThreshed, gaussian_result, Size(9, 9), 2, 2 );
-          vector<Vec3f> circles;
-          CvSize dim = cvGetSize(color_img);
-          
-          //draws center point of screen
-          circle(src, Point(dim.width/2,dim.height/2), 3, Scalar(255,0,0), -1, 8, 0); 
-          // Apply the Hough Transform to find the circles
-          HoughCircles(gaussian_result, circles, CV_HOUGH_GRADIENT, 1, 30, 250, 40, 10, 0 );
+        // Reduce the noise so we avoid false circle detection
+        GaussianBlur( imgThreshed, gaussian_result, Size(9, 9), 2, 2 );
+        vector<Vec3f> circles;
+        CvSize dim = cvGetSize(color_img);
+        Point center_screen(dim.width/2,dim.height/2);
+        
+        //Draw center point of screen
+        circle(src, center_screen, 3, Scalar(255,0,0), -1, 8, 0);
+        circle(src, center_screen, 50, Scalar(255,0,0), 1, 8, 0);
 
-          // Draw the circles detected
-          for( size_t i = 0; i < circles.size(); i++ )
-          {
-              Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
-              int radius = cvRound(circles[i][2]);
-              circle( src, center, 3, Scalar(0,255,0), -1, 8, 0 );// circle center     
-              circle( src, center, radius, Scalar(0,0,255), 3, 8, 0 );// circle outline
-              cout << "center : " << center << "\nradius : " << radius << endl;
-              int x_distance = dim.width/2 - center.x;
-              int y_distance = dim.height/2 - center.y;
-              cout << "distance from center " << x_distance << ": " << y_distance << endl;
-           
-           }
+        // Apply the Hough Transform to find the circles
+        HoughCircles(gaussian_result, circles, CV_HOUGH_GRADIENT, 1, 30, 250, 30, 10, 0 );
 
-           text_onscreen(src); 
+        // Draw the circles detected
+        for( size_t i = 0; i < circles.size(); i++ )
+        {
+            Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
+            int radius = cvRound(circles[i][2]);
 
-          imshow("Video", src);
-          imshow("Gaussian Blur", gaussian_result);
-          imshow("Threshold", imgHSV);
+            //Drawing each circle
+            circle( src, center, 3, Scalar(0,255,0), -1, 8, 0 );//center     
+            circle( src, center, radius, Scalar(0,0,255), 3, 8, 0 );//circumference
+            line(src, center, Point(center.x + radius, center.y), Scalar(0,255,0), 1, 8, 0); //radius
+
+            //Drawing lines relative to center
+            Point midpoint(center.x, center_screen.y);
+            line(src, center_screen, center, Scalar(255,0,0), 1, 8, 0);//center to center
+            line(src, center_screen, midpoint, Scalar(255,0,0), 1, 8, 0);//y
+            line(src, midpoint, center, Scalar(255,0,0), 1, 8, 0);//x
+            
+            //cout << "center : " << center << "\nradius : " << radius << endl;
+            
+            double x_distance = center.x - center_screen.x;
+            double y_distance = center.y - center_screen.y;
+
+            if(x_distance == 0){
+              x_distance = 1;
+            }
+            else if (y_distance == 0)
+            {
+              y_distance == 1;
+            }
+
+            double angle = tan(y_distance/x_distance);
+
+            double distance = -(radius - 20) + 100;
+
+            angle = fmod(angle, pi);
+            cout << "angle:  " << angle << endl;
+            cout << "distance:  " << distance << endl;
+
+          }  
+
+        text_onscreen(src); 
+
+        imshow("Video", src);
+        imshow("Gaussian Blur", gaussian_result);
+        imshow("HSV Image", imgHSV);
+
         c = cvWaitKey(10); // wait 10 ms or for key stroke
         if(c == 27){
             break; // if ESC, break and quit
-    }
-  }
-}
+          }
+        }
+      }
     /* clean up */
     cvReleaseCapture( &cv_cap );
     cvDestroyWindow("Video");
