@@ -14,21 +14,9 @@ void text_onscreen(Mat src){
   int fontFace = cv::FONT_HERSHEY_PLAIN;
   double fontScale = 1.5;
   int thickness = 1;
-  cv::Point textOrg(20, 20);
+  Point textOrg(20, 20);
   putText(src, text, textOrg, fontFace, fontScale, Scalar(0,0,0,255), thickness,8);
 }
-
-int color_filter(Mat input_image){
-  //(0,255,0)
- /*We want to filter out all the color in the image save for green
- We do this by changing all the other RGB channels to 0 if the green value
- is under a certain threshold. We can run the HoughCircle code on the
- filtered image which should make it easier.*/
-
-
-}
-
-
 
 int main(int argc,char *argv[])
 {
@@ -59,7 +47,7 @@ int main(int argc,char *argv[])
           //draws center point of screen
           circle(src, Point(dim.width/2,dim.height/2), 3, Scalar(255,0,0), -1, 8, 0); 
           // Apply the Hough Transform to find the circles
-          HoughCircles(gaussian_result, circles, CV_HOUGH_GRADIENT, 1, 30, 250, 25, 5, 0 );
+          HoughCircles(gaussian_result, circles, CV_HOUGH_GRADIENT, 1, 30, 250, 40, 10, 0 );
 
           // Draw the circles detected
           for( size_t i = 0; i < circles.size(); i++ )
@@ -71,7 +59,7 @@ int main(int argc,char *argv[])
               cout << "center : " << center << "\nradius : " << radius << endl;
               int x_distance = dim.width/2 - center.x;
               int y_distance = dim.height/2 - center.y;
-              cout << "distance from center " << x_distance << ":" << y_distance << endl;
+              cout << "distance from center " << x_distance << ": " << y_distance << endl;
            
            }
 
