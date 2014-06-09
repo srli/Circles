@@ -11,7 +11,7 @@ using namespace std;
 
 
 void text_onscreen(Mat src){
-  string text = "distance";
+  string text = "Reference radius is 50px";
   int fontFace = cv::FONT_HERSHEY_PLAIN;
   double fontScale = 1.5;
   int thickness = 1;
@@ -27,7 +27,7 @@ int main(int argc,char *argv[])
     Mat imgHSV, imgThreshed;
     
     IplImage* color_img;
-    CvCapture* cv_cap = cvCaptureFromCAM(0);
+    CvCapture* cv_cap = cvCaptureFromCAM(1);
     cvNamedWindow("Circle Detection",0); // create window
     cvNamedWindow("Gaussian Blur",0);
     cvNamedWindow("HSV Image", 0);
@@ -75,21 +75,16 @@ int main(int argc,char *argv[])
             double x_distance = center.x - center_screen.x;
             double y_distance = center.y - center_screen.y;
 
-            if(x_distance == 0){
-              x_distance = 1;
-            }
-            else if (y_distance == 0)
-            {
-              y_distance == 1;
-            }
-
-            double angle = tan(y_distance/x_distance);
             double distance = -(radius - 20) + 100;
+            double pan_angle = tan(x_distance * pi/distance);
+            double tilt_angle = tan(y_distance * pi/distance);
 
-            angle = fmod(angle, pi);
+            //angle = fmod(angle, pi);
             cout << "radius:  " << radius << endl;
-            cout << "angle:  " << angle << endl;
+            cout << "pan:  " << pan_angle << endl;
+            cout << "tilt:  " << tilt_angle << endl;
             cout << "distance:  " << distance << endl;
+            cout << "-------------" << endl;
             }
             
 
