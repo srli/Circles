@@ -27,7 +27,7 @@ int main(int argc,char *argv[])
     Mat imgHSV, imgThreshed;
     
     IplImage* color_img;
-    CvCapture* cv_cap = cvCaptureFromCAM(1);
+    CvCapture* cv_cap = cvCaptureFromCAM(0);
     cvNamedWindow("Circle Detection",0); // create window
     cvNamedWindow("Gaussian Blur",0);
     cvNamedWindow("HSV Image", 0);
@@ -75,9 +75,9 @@ int main(int argc,char *argv[])
             double x_distance = center.x - center_screen.x;
             double y_distance = center.y - center_screen.y;
 
-            double distance = -(radius - 20) + 100;
-            double pan_angle = tan(x_distance * pi/distance);
-            double tilt_angle = tan(y_distance * pi/distance);
+            double distance = 126.964*exp(-0.0216358 * radius);
+            double pan_angle = tan(x_distance/distance);
+            double tilt_angle = tan(y_distance/distance);
 
             //angle = fmod(angle, pi);
             cout << "radius:  " << radius << endl;
