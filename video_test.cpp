@@ -31,6 +31,7 @@ int main(int argc,char *argv[])
     cvNamedWindow("Circle Detection",0); // create window
     cvNamedWindow("Gaussian Blur",0);
     cvNamedWindow("HSV Image", 0);
+    printf("Please press a to display information.\n");
 
     for(;;) {
       color_img = cvQueryFrame(cv_cap); // get frame
@@ -42,7 +43,7 @@ int main(int argc,char *argv[])
         inRange(imgHSV, Scalar(60, 70, 70), Scalar(120, 255, 255), imgThreshed);
 
         // Reduce the noise so we avoid false circle detection
-        GaussianBlur( imgThreshed, gaussian_result, Size(9, 9), 2, 2 );
+        GaussianBlur( imgThreshed, gaussian_result, Size(13, 13), 2, 2 );
         vector<Vec3f> circles;
         //std::vector<int> circles_radius;
         CvSize dim = cvGetSize(color_img);
@@ -82,13 +83,14 @@ int main(int argc,char *argv[])
                 double pan_angle = tan(x_distance/distance);
                 double tilt_angle = tan(y_distance/distance);
 
-                //printf("Waiting to display results\n");
+                //printf("");
                 
                 int key;
                 key = cvWaitKey(50);
 
                 if(key == 97){
                 //angle = fmod(angle, pi);
+                printf("Robot Coordinates\n");
                 cout << "radius:  " << radius << endl;
                 cout << "pan:  " << pan_angle << endl;
                 cout << "tilt:  " << tilt_angle << endl;
