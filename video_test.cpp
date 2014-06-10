@@ -22,7 +22,7 @@ void text_onscreen(Mat src){
 int main(int argc,char *argv[])
 {
     int c;
-    double pi = 3.1415926535897;
+    double pi = 3.1415926535897;    
     Mat src, gray, gaussian_result;
     Mat imgHSV, imgThreshed;
     
@@ -54,39 +54,54 @@ int main(int argc,char *argv[])
 
         // Apply the Hough Transform to find the circles
         HoughCircles(gaussian_result, circles, CV_HOUGH_GRADIENT, 1, 30, 200, 30, 20, 0 );
-        // Draw the circles detected
-        //for( size_t i = 0; i < circles.size(); i++ )
-        for( size_t i = 0; i < circles.size(); i++ ){
-            Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
-            int radius = cvRound(circles[i][2]);
+        if (circles.size() != 0){
 
-            //Drawing each circle
-            circle( src, center, 3, Scalar(0,255,0), -1, 8, 0 );//center
-            circle( src, center, radius, Scalar(0,0,255), 3, 8, 0 );//circumference
 
-            //Drawing lines relative to center
-            Point midpoint(center.x, center_screen.y);
-            line(src, center_screen, center, Scalar(255,0,0), 1, 8, 0);//center to center
-            line(src, center_screen, midpoint, Scalar(255,0,0), 1, 8, 0);//y
-            line(src, midpoint, center, Scalar(255,0,0), 1, 8, 0);//x
-            
-            //cout << "center : " << center << "\nradius : " << radius << endl;
-            
-            double x_distance = center.x - center_screen.x;
-            double y_distance = center.y - center_screen.y;
+            // Draw the circles detected
+            //for( size_t i = 0; i < circles.size(); i++ )
+            for( size_t i = 0; i < circles.size(); i++ ){
+                Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
+                int radius = cvRound(circles[i][2]);
 
-            double distance = 126.964*exp(-0.0216358 * radius);
-            double pan_angle = tan(x_distance/distance);
-            double tilt_angle = tan(y_distance/distance);
+                //Drawing each circle
+                circle( src, center, 3, Scalar(0,255,0), -1, 8, 0 );//center
+                circle( src, center, radius, Scalar(0,0,255), 3, 8, 0 );//circumference
 
-            //angle = fmod(angle, pi);
-            cout << "radius:  " << radius << endl;
-            cout << "pan:  " << pan_angle << endl;
-            cout << "tilt:  " << tilt_angle << endl;
-            cout << "distance:  " << distance << endl;
-            cout << "-------------" << endl;
-            }
-            
+                //Drawing lines relative to center
+                Point midpoint(center.x, center_screen.y);
+                line(src, center_screen, center, Scalar(255,0,0), 1, 8, 0);//center to center
+                line(src, center_screen, midpoint, Scalar(255,0,0), 1, 8, 0);//y
+                line(src, midpoint, center, Scalar(255,0,0), 1, 8, 0);//x
+                
+                //cout << "center : " << center << "\nradius : " << radius << endl;
+                
+                double x_distance = center.x - center_screen.x;
+                double y_distance = center.y - center_screen.y;
+
+                double distance = 126.964*exp(-0.0216358 * radius);
+                double pan_angle = tan(x_distance/distance);
+                double tilt_angle = tan(y_distance/distance);
+
+                //printf("Waiting to display results\n");
+                
+                int key;
+                key = cvWaitKey(50);
+
+                if(key == 97){
+                //angle = fmod(angle, pi);
+                cout << "radius:  " << radius << endl;
+                cout << "pan:  " << pan_angle << endl;
+                cout << "tilt:  " << tilt_angle << endl;
+                cout << "distance:  " << distance << endl;
+                cout << "-------------" << endl;
+                }
+        }
+    }
+
+/*        else{
+            break;
+        }
+           */ 
 
         text_onscreen(src); 
 
