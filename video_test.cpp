@@ -21,16 +21,16 @@ void text_onscreen(Mat src){
 
 int main(int argc,char *argv[])
 {
-    int c;
-    double pi = 3.1415926535897;    
+    int c, key;
     Mat src, gray, gaussian_result;
-    Mat imgHSV, imgThreshed;
+    Mat imgHSV, imgThreshed, masked;
     
     IplImage* color_img;
     CvCapture* cv_cap = cvCaptureFromCAM(0);
     cvNamedWindow("Circle Detection",0); // create window
     cvNamedWindow("Gaussian Blur",0);
     cvNamedWindow("HSV Image", 0);
+    cvNamedWindow("Masked", 0);
     printf("Please press a to display information.\n");
 
     for(;;) {
@@ -39,6 +39,7 @@ int main(int argc,char *argv[])
         src = color_img;
 
         //Changing color image to HSV for color filtering
+        //cvtColor(src, gray, CV_BGR2GRAY);
         cvtColor(src, imgHSV, CV_BGR2HSV);
         inRange(imgHSV, Scalar(60, 70, 70), Scalar(120, 255, 255), imgThreshed);
 
@@ -53,6 +54,8 @@ int main(int argc,char *argv[])
         circle(src, center_screen, 3, Scalar(255,0,0), -1, 8, 0);
         circle(src, center_screen, 50, Scalar(255,0,0), 1, 8, 0);
 
+        //Masks the thresholded image to the color, aloows only the untreshed parts through
+        src.copyTo(masked, imgThreshed);
         // Apply the Hough Transform to find the circles
         HoughCircles(gaussian_result, circles, CV_HOUGH_GRADIENT, 1, 30, 200, 30, 20, 0 );
         if (circles.size() != 0){
@@ -83,9 +86,16 @@ int main(int argc,char *argv[])
                 double pan_angle = tan(x_distance/distance);
                 double tilt_angle = tan(y_distance/distance);
 
-                //printf("");
+/*                vector<Vec4i> lines;
+                HoughLinesP(masked, lines, 1, CV_PI/180,80,40,5);
+
+                for(size_t i=0; i < lines.size(); i++){
+                    line(src, Point(lines[i][0], lines[i][1]), 
+                    Point(lines[i][2], lines[i][3]), Scalar(0,255,0), 1, 8);
+                }
+
+*/                //printf("");
                 
-                int key;
                 key = cvWaitKey(50);
 
                 if(key == 97){
@@ -110,6 +120,8 @@ int main(int argc,char *argv[])
         imshow("Circle Detection", src);
         imshow("Gaussian Blur", gaussian_result);
         imshow("HSV Image", imgHSV);
+        imshow("Masked", masked);
+        masked = Mat::zeros(masked.rows, masked.cols, CV_64F);
 
         c = cvWaitKey(10); // wait 10 ms or for key stroke
         if(c == 27){
