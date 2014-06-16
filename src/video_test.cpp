@@ -30,7 +30,7 @@ int main(int argc,char *argv[])
     cvNamedWindow("Circle Detection",0); // create window
     cvNamedWindow("Gaussian Blur",0);
     cvNamedWindow("HSV Image", 0);
-    cvNamedWindow("Masked", 0);
+    //cvNamedWindow("Masked", 0);
     printf("Please press a to display information.\n");
 
     for(;;) {
@@ -39,7 +39,7 @@ int main(int argc,char *argv[])
         src = color_img;
 
         //Changing color image to HSV for color filtering
-        //cvtColor(src, gray, CV_BGR2GRAY);
+        cvtColor(src, gray, CV_BGR2GRAY);
         cvtColor(src, imgHSV, CV_BGR2HSV);
         inRange(imgHSV, Scalar(60, 70, 70), Scalar(120, 255, 255), imgThreshed);
 
@@ -55,9 +55,9 @@ int main(int argc,char *argv[])
         circle(src, center_screen, 50, Scalar(255,0,0), 1, 8, 0);
 
         //Masks the thresholded image to the color, aloows only the untreshed parts through
-        src.copyTo(masked, imgThreshed);
+        //src.copyTo(masked, imgThreshed);
         // Apply the Hough Transform to find the circles
-        HoughCircles(gaussian_result, circles, CV_HOUGH_GRADIENT, 1, 30, 200, 30, 20, 0 );
+        HoughCircles(gray, circles, CV_HOUGH_GRADIENT, 1, 30, 200, 30, 20, 0 );
         if (circles.size() != 0){
 
 
@@ -96,7 +96,7 @@ int main(int argc,char *argv[])
 
 */                //printf("");
                 
-                key = cvWaitKey(50);
+                //key = cvWaitKey(50);
 
                 if(key == 97){
                 //angle = fmod(angle, pi);
@@ -118,9 +118,9 @@ int main(int argc,char *argv[])
         text_onscreen(src); 
 
         imshow("Circle Detection", src);
-        imshow("Gaussian Blur", gaussian_result);
+        imshow("Gaussian Blur", gray);
         imshow("HSV Image", imgHSV);
-        imshow("Masked", masked);
+        //imshow("Masked", masked);
         masked = Mat::zeros(masked.rows, masked.cols, CV_64F);
 
         c = cvWaitKey(10); // wait 10 ms or for key stroke
