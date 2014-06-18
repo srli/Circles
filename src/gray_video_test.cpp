@@ -7,8 +7,6 @@
 #include <math.h>
 
 using namespace cv;
-using namespace std;
-
 
 void text_onscreen(Mat src){
   string text = "Reference radius is 50px";
@@ -19,35 +17,18 @@ void text_onscreen(Mat src){
   putText(src, text, textOrg, fontFace, fontScale, Scalar(0,0,0,255), thickness,8);
 }
 
-int roll_pitch_yaw("ROLL PITCH YAW STUFF"){
-
-    /*Stuff here that will get RPY info from the MyRIO
-    Output these things in degrees*/
-
-}
-
-class Angle {
-    double x_roll, y_pitch, z_yaw;
-
-public:
-};
-
-
-
-
-
 int main(int argc,char *argv[])
 {
     int c, key;
-    double pi = 3.1415926535897;    
     Mat src, gray, gaussian_result;
-    Mat imgHSV, imgThreshed;
+    Mat masked;
     
     IplImage* color_img;
     CvCapture* cv_cap = cvCaptureFromCAM(0);
     cvNamedWindow("Circle Detection",0); // create window
     cvNamedWindow("Gaussian Blur",0);
-    cvNamedWindow("HSV Image", 0);
+    cvNamedWindow("Masked", 0);
+    printf("Please press a to display information.\n");
 
     for(;;) {
       color_img = cvQueryFrame(cv_cap); // get frame
@@ -55,13 +36,11 @@ int main(int argc,char *argv[])
         src = color_img;
 
         //Changing color image to HSV for color filtering
-        cvtColor(src, imgHSV, CV_BGR2HSV);
-        inRange(imgHSV, Scalar(60, 70, 70), Scalar(120, 255, 255), imgThreshed);
-
+        cvtColor(src, gray, CV_BGR2GRAY);
+    
         // Reduce the noise so we avoid false circle detection
-        GaussianBlur( imgThreshed, gaussian_result, Size(9, 9), 2, 2 );
-        vector<Vec3f> circles;
-        //std::vector<int> circles_radius;
+        GaussianBlur( gray, gaussian_result, Size(13, 13), 2, 2 );
+        std::vector<Vec3f> circles;
         CvSize dim = cvGetSize(color_img);
         Point center_screen(dim.width/2,dim.height/2);
         
@@ -69,8 +48,13 @@ int main(int argc,char *argv[])
         circle(src, center_screen, 3, Scalar(255,0,0), -1, 8, 0);
         circle(src, center_screen, 50, Scalar(255,0,0), 1, 8, 0);
 
+        //Creates the mask to apply to source image
+        Mat mask(src.size(), src.type());
+        mask.setTo(Scalar(0,0,0));
+        //src.copyTo(masked, imgThreshed);
+
         // Apply the Hough Transform to find the circles
-        HoughCircles(gaussian_result, circles, CV_HOUGH_GRADIENT, 1, 30, 200, 30, 20, 0 );
+        HoughCircles(gaussian_result, circles, CV_HOUGH_GRADIENT, 1, 30, 200, 30, 20, 200);
         if (circles.size() != 0){
 
 
@@ -83,6 +67,7 @@ int main(int argc,char *argv[])
                 //Drawing each circle
                 circle( src, center, 3, Scalar(0,255,0), -1, 8, 0 );//center
                 circle( src, center, radius, Scalar(0,0,255), 3, 8, 0 );//circumference
+                circle( mask, center, radius, Scalar(255,255,255), -1, 8, 0);
 
                 //Drawing lines relative to center
                 Point midpoint(center.x, center_screen.y);
@@ -91,6 +76,15 @@ int main(int argc,char *argv[])
                 line(src, midpoint, center, Scalar(255,0,0), 1, 8, 0);//x
                 
                 //cout << "center : " << center << "\nradius : " << radius << endl;
+
+                Mat roi = (Range(circles[i][1] - circles[i][2], circles[i][1] + circles[i][2] + 1), 
+                                Range(circles[i][0] - circles[i][2], circles[i][0] + circles[i][2] + 1));
+
+                Mat1b mask(roi.rows, roi.cols);
+
+                //Scalar mean = mean(roi, mask);
+
+                //std::cout << "mean color of circle:  " << mean[0] << mean[1] << mean[2] << std::cout;
                 
                 double x_distance = center.x - center_screen.x;
                 double y_distance = center.y - center_screen.y;
@@ -99,32 +93,40 @@ int main(int argc,char *argv[])
                 double pan_angle = tan(x_distance/distance);
                 double tilt_angle = tan(y_distance/distance);
 
-                printf("");
+/*                vector<Vec4i> lines;
 
-                key = cvWaitKey(100);
+                HoughLinesP(gray, lines, 1, CV_PI/180,150,150,5);
+
+                for(size_t i=0; i < lines.size(); i++){
+                    line(src, Point(lines[i][0], lines[i][1]), 
+                    Point(lines[i][2], lines[i][3]), Scalar(0,255,0), 1, 8);
+                }*/
+
+                //printf("");
+                
+                //key = cvWaitKey(50);
 
                 if(key == 97){
                 //angle = fmod(angle, pi);
                 printf("Robot Coordinates\n");
-                cout << "radius:  " << radius << endl;
-                cout << "pan:  " << pan_angle << endl;
-                cout << "tilt:  " << tilt_angle << endl;
-                cout << "distance:  " << distance << endl;
-                cout << "-------------" << endl;
+                std::cout << "radius:  " << radius << std::endl;
+                std::cout << "pan:  " << pan_angle << std::endl;
+                std::cout << "tilt:  " << tilt_angle << std::endl;
+                std::cout << "distance:  " << distance << std::endl;
+                std::cout << "-------------" << std::endl;
                 }
+            }
         }
-    }
 
-/*        else{
-            break;
-        }
-           */ 
+        src.copyTo(masked, mask);
 
         text_onscreen(src); 
 
         imshow("Circle Detection", src);
         imshow("Gaussian Blur", gaussian_result);
-        imshow("HSV Image", imgHSV);
+        //imshow("HSV Image", imgHSV);
+        imshow("Masked", masked);
+        masked = Mat::zeros(masked.rows, masked.cols, CV_64F);
 
         c = cvWaitKey(10); // wait 10 ms or for key stroke
         if(c == 27){
@@ -132,6 +134,7 @@ int main(int argc,char *argv[])
           }
         }
       }
+    
     /* clean up */
     cvReleaseCapture( &cv_cap );
     cvDestroyWindow("Video");

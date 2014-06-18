@@ -57,7 +57,7 @@ int main(int argc,char *argv[])
         //Masks the thresholded image to the color, aloows only the untreshed parts through
         //src.copyTo(masked, imgThreshed);
         // Apply the Hough Transform to find the circles
-        HoughCircles(gray, circles, CV_HOUGH_GRADIENT, 1, 30, 200, 30, 20, 0 );
+        HoughCircles(gaussian_result, circles, CV_HOUGH_GRADIENT, 1, 30, 200, 30, 20, 200);
         if (circles.size() != 0){
 
 
@@ -118,7 +118,7 @@ int main(int argc,char *argv[])
         text_onscreen(src); 
 
         imshow("Circle Detection", src);
-        imshow("Gaussian Blur", gray);
+        imshow("Gaussian Blur", gaussian_result);
         imshow("HSV Image", imgHSV);
         //imshow("Masked", masked);
         masked = Mat::zeros(masked.rows, masked.cols, CV_64F);
